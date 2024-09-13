@@ -1,45 +1,60 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Main.java to edit this template
- */
 package eightqueens2;
 
 import java.util.Random;
 
 /**
- * @author johnlukedeneen
+ * This class implements a solution to the Eight Queens puzzle using
+ * a hill-climbing algorithm. It randomly places queens on a chessboard 
+ * and attempts to minimize conflicts through state changes and restarts.
+ * 
+ * @author John-Luke Deneen
  */
 public class EightQueens2 {
 
-    //Declare 8x8 2Darray chessBoards and initialize variables
+    /** The current state of the chessboard represented as a 2D array. */
     public static int[][] currentState = new int[8][8];
+
+    /** The next possible state of the chessboard represented as a 2D array. */
     public static int[][] nextState = new int[8][8];
+
+    /** The number of state changes made during the algorithm execution. */
     public static int numStateChanges = 0;
+
+    /** The number of restarts initiated during the algorithm execution. */
     public static int numRestarts = -1;
+
+    /** The number of neighboring states with a lower heuristic than the current state. */
     public static int numNeighborLowerH = 0;
 
+    /**
+     * The main method that initializes the chessboard, runs the hill-climbing 
+     * algorithm, and prints the solution once found.
+     * 
+     * @param args command line arguments (not used)
+     */
     public static void main(String[] args) {
 
-        //randomly populate queens
+        // Randomly populate queens
         populateRandState(currentState);
 
-        //While there are conflicts, generate neighbor states and print the current state 
+        // While there are conflicts, generate neighbor states and print the current state 
         while (calcHeuristic(currentState) != 0) {
             generateNeighborStates(currentState);
             printBoard(currentState);
 
-            //If the nextState has left conlficts then the current state,
-            //coppy next stae to current state and increment numStateChanges
+            // If the nextState has fewer conflicts than the current state,
+            // copy nextState to currentState and increment numStateChanges
             if (calcHeuristic(nextState) < calcHeuristic(currentState)) {
                 copyArray(nextState, currentState);
                 numStateChanges++;
             }
-            //if solution is found call final print
+
+            // If solution is found, call finalPrint and exit
             if (calcHeuristic(currentState) == 0) {
                 finalPrint(currentState);
                 return;
-                //else if solution not found and no solution,
-                //restart with new random state
+
+            // Restart with a new random state if no neighbor with lower heuristic is found
             } else if (numNeighborLowerH == 0) {
                 System.out.println("Restarting...");
                 currentState = new int[8][8];
@@ -48,29 +63,34 @@ public class EightQueens2 {
         }
     }
 
-    //Method to randomly populate chessBoard
+    /**
+     * Populates the chessboard with queens randomly placed in each column.
+     * 
+     * @param array the 2D array representing the chessboard
+     */
     public static void populateRandState(int[][] array) {
         Random random = new Random();
-        //for loop to set 1 queen per column at a random row index
         for (int i = 0; i < 8; i++) {
             int rowIndex = random.nextInt(8);
             array[rowIndex][i] = 1;
-
         }
         numRestarts++;
     }
 
-    //method to print out current state
+    /**
+     * Prints the current state of the chessboard along with the heuristic 
+     * and the number of neighbors found with a lower heuristic.
+     * 
+     * @param array the 2D array representing the chessboard
+     */
     public static void printBoard(int[][] array) {
         int currH = calcHeuristic(array);
         System.out.println("Current h: " + currH);
         System.out.println("Current state:");
-        //for loop to itterate through 2d array
-        for (int[] array1 : array) {
-            for (int j = 0; j < array1.length; j++) {
-                System.out.print(array1[j] + " ");
+        for (int[] row : array) {
+            for (int value : row) {
+                System.out.print(value + " ");
             }
-            //Move to a new line after each row is printed
             System.out.println();
         }
         System.out.println("Neighbors found with lower h: " + numNeighborLowerH);
@@ -78,6 +98,11 @@ public class EightQueens2 {
         System.out.println();
     }
 
+    /**
+     * Prints the final state of the chessboard once the solution is found.
+     * 
+     * @param array the 2D array representing the chessboard
+     */
     public static void finalPrint(int[][] array) {
         int currH = calcHeuristic(array);
         System.out.println("----------------");
@@ -85,86 +110,74 @@ public class EightQueens2 {
         System.out.println("----------------");
         System.out.println("Current h: " + currH);
         System.out.println("Final state:");
-        //for loop to itterate through 2d array
-        for (int[] array1 : array) {
-            for (int j = 0; j < array1.length; j++) {
-                System.out.print(array1[j] + " ");
+        for (int[] row : array) {
+            for (int value : row) {
+                System.out.print(value + " ");
             }
-            //Move to a new line after each row is printed
             System.out.println();
         }
         System.out.println("State changes: " + numStateChanges);
         System.out.println("Restarts: " + numRestarts);
     }
 
-    //method to calculate current heuristic value
+    /**
+     * Calculates the heuristic value, which is the number of conflicts between queens 
+     * on the chessboard. The goal is to minimize the heuristic to 0, which indicates no conflicts.
+     * 
+     * @param array the 2D array representing the chessboard
+     * @return the heuristic value (number of conflicts)
+     */
     public static int calcHeuristic(int[][] array) {
-        //initialize heuristic to 0
         int heuristic = 0;
-        //itterate through each column
         for (int col = 0; col < array.length; col++) {
-            //set row to an invalid value, it will be changed to current
-            //row of the queen in the current column after it is found
             int row = -1;
-            //find the row of the queen in the current column
             for (int i = 0; i < array.length; i++) {
                 if (array[i][col] == 1) {
-                    //queen has been found, set row to correct value
                     row = i;
-                    //break once queen has been found for given col
                     break;
                 }
             }
-            //check if queen was found in current column
             if (row != -1) {
-                //check for conflicts in the same row, for each column starting
-                //with second column (index 1 = col + 1)
                 for (int i = col + 1; i < array.length; i++) {
                     if (array[row][i] == 1) {
-                        //if conflict is found increment heuristic
                         heuristic++;
                     }
                 }
-                //check for conflicts in diagonal top left to bottom right
                 for (int i = 1; row + i < array.length && col + i < array.length; i++) {
                     if (array[row + i][col + i] == 1) {
-                        //if conflict is found increment heuristic
                         heuristic++;
                     }
                 }
-                //check for conflicts in diagonal top right to bottom left
                 for (int i = 1; row - i >= 0 && col + i < array.length; i++) {
-                    if (row - i >= 0 && array[row - i][col + i] == 1) {
-                        //if conflict is found increment heuristic
+                    if (array[row - i][col + i] == 1) {
                         heuristic++;
                     }
                 }
-
             }
         }
         return heuristic;
     }
 
+    /**
+     * Generates neighboring states of the current chessboard and updates 
+     * the state if a neighbor with a lower heuristic is found.
+     * 
+     * @param array the 2D array representing the current chessboard state
+     */
     public static void generateNeighborStates(int[][] array) {
         int[][] tmp = deepCopy(array);
         nextState = deepCopy(array);
         int bestHeuristic = calcHeuristic(array);
         numNeighborLowerH = 0;
 
-        //itterate through each column
         for (int col = 0; col < array.length; col++) {
-            //itterate through each row
             copyArray(currentState, tmp);
             for (int row = 0; row < array[col].length; row++) {
-                //clear the current column
                 clearColumn(tmp, col);
-                //place queen at current index
                 tmp[row][col] = 1;
-                //variable to hold h value of current tmp state
                 int currHeuristic = calcHeuristic(tmp);
                 if (currHeuristic < bestHeuristic) {
                     bestHeuristic = currHeuristic;
-                    //copy tmp to next state
                     copyArray(tmp, nextState);
                     numNeighborLowerH++;
                 }
@@ -172,16 +185,24 @@ public class EightQueens2 {
         }
     }
 
-    //Method to clear a specific column of a 2d array
+    /**
+     * Clears the specified column of the chessboard by setting all values in the column to 0.
+     * 
+     * @param array the 2D array representing the chessboard
+     * @param col the column index to clear
+     */
     public static void clearColumn(int[][] array, int col) {
         for (int j = 0; j < 8; j++) {
-            if (array[j][col] == 1) {
-                array[j][col] = 0;
-            }
+            array[j][col] = 0;
         }
     }
 
-    //copies original 2dArray to destination 
+    /**
+     * Copies the contents of the original array to the destination array.
+     * 
+     * @param original the original 2D array to copy
+     * @param destination the destination 2D array
+     */
     public static void copyArray(int[][] original, int[][] destination) {
         for (int i = 0; i < original.length; i++) {
             for (int j = 0; j < original[i].length; j++) {
@@ -190,7 +211,12 @@ public class EightQueens2 {
         }
     }
 
-    //creates new 2d array copy the same as the origional array
+    /**
+     * Creates and returns a deep copy of the given 2D array.
+     * 
+     * @param original the original 2D array to copy
+     * @return a deep copy of the original array
+     */
     public static int[][] deepCopy(int[][] original) {
         int[][] copy = new int[original.length][original[0].length];
         for (int i = 0; i < original.length; i++) {
