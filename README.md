@@ -1,5 +1,5 @@
 # N-Queens
-This repository contains a Java-based solution to the classic N-Queens problem, where the goal is to place N queens on an NxN chessboard so that no two queens threaten each other. This means ensuring that no two queens share the same row, column, or diagonal.
+This repository contains a Java-based solution to the classic N-Queens problem, where the goal is to place 8 queens on an 8x8 chessboard so that no two queens threaten each other. This means ensuring that no two queens share the same row, column, or diagonal.
 
 ## Features
 - Hill climbing algorithm: A heuristic search algorithm that iteratively improves the solution by reducing conflicts between queens
